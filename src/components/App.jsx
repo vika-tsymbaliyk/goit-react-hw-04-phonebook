@@ -1,73 +1,61 @@
-import { Component } from "react";
+import { useState } from "react";
 import { nanoid } from 'nanoid'
 import { ContactForm } from "./ContactForm/ContactForm";
 import { Layout } from "./Layout";
 import { Filter } from "./Filter/Filter";
 import { ContactList } from "./ContactList/ContactList";
+import { useEffect } from "react";
 
-export class App extends Component {
-  state = {
-    contacts: [],
-    filter: "",
-  };
+export const App =()=> {
 
-  componentDidMount() {
+  const [contacts, setContacts] = useState([]);
+  const [filter, setFilter] = useState("");
+  const filterContacts = contacts.filter(contact => contact.name.toUpperCase().includes(filter.toUpperCase()));
+
+  useEffect(() => {
     const savedContacts = localStorage.getItem('contacts');
     if (savedContacts !== null){
-      this.setState({
-        contacts: JSON.parse(savedContacts)
-      })
+    setContacts(JSON.parse(savedContacts))
+  } }, []);
+
+  useEffect(()=>{
+    localStorage.setItem('contacts', JSON.stringify(contacts))},[contacts])
+  
+  const deleteContact = (contactId) => {
+    setContacts(prevContacts =>prevContacts.filter(contact => contact.id !== contactId));
+  };
+
+  
+  const searchContact = filterContact => {
+    setFilter(filterContact)
+  };
+
+  const addContact = newContact =>{
+    const { name, number } = newContact;
+  
+    const isExist = contacts.some(
+      contact => contact.name.toUpperCase() === name.toUpperCase()
+        || contact.number === number
+    );
+    if (isExist) {
+      alert(`${name} is already in contacts.`);
+      return
     }
-  }
+  
+    setContacts(prevContacts =>[...prevContacts, {id: nanoid(), ...newContact}]);
+    }
 
-  componentDidUpdate(PrevProps, prevState){
-    if (prevState.contacts !== this.state.contacts)
-    localStorage.setItem('contacts', JSON.stringify(this.state.contacts))
-  }
-
-addContact = newContact =>{
-  const { name, number } = newContact;
-
-  const isExist = this.state.contacts.some(
-    contact => contact.name.toUpperCase() === name.toUpperCase()
-      || contact.number === number
-  );
-  if (isExist) {
-    alert(`${name} is already in contacts.`);
-    return
-  }
-
-  this.setState(prevState => ({
-    contacts: [
-        ...prevState.contacts,
-        {id: nanoid(), ...newContact},
-      ],
-    }));
-  }
-  deleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
-  };
-
-  searchContact = filterContact => {
-    this.setState({
-      filter: filterContact,
-    })
-  };
-
-render(){
-  const { contacts, filter } = this.state;
-  const filterContacts = contacts.filter(contact => contact.name.toUpperCase().includes(filter.toUpperCase()));
+    
+  
   return(
   <Layout>
   <h1>Phonebook</h1>
-  <ContactForm onAdd={this.addContact}/>
+  <ContactForm onAdd={addContact}/>
     
   <h2>Contacts</h2>
-  <Filter filter={filter} onSearchContact={this.searchContact}/>
-  <ContactList filterContactsList={filterContacts} deleteContact={this.deleteContact}/>
+  <Filter filter={filter} onSearchContact={searchContact}/>
+  <ContactList filterContactsList={filterContacts} deleteContact={deleteContact}/>
   </Layout>
   )
-}
+
 }
