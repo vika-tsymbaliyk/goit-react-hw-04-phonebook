@@ -8,15 +8,9 @@ import { useEffect } from "react";
 
 export const App =()=> {
 
-  const [contacts, setContacts] = useState([]);
+  const [contacts, setContacts] = useState(()=>JSON.parse(localStorage.getItem('contacts')) ?? []);
   const [filter, setFilter] = useState("");
   const filterContacts = contacts.filter(contact => contact.name.toUpperCase().includes(filter.toUpperCase()));
-
-  useEffect(() => {
-    const savedContacts = localStorage.getItem('contacts');
-    if (savedContacts !== null){
-    setContacts(JSON.parse(savedContacts))
-  } }, []);
 
   useEffect(()=>{
     localStorage.setItem('contacts', JSON.stringify(contacts))},[contacts])
